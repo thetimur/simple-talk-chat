@@ -59,7 +59,7 @@ class HttpChatServer(private val host: String, private val port: Int) {
         }
 
         install(ContentNegotiation) {
-            // TODO: initialize jackson
+//             TODO: initialize jackson
         }
 
         routing {

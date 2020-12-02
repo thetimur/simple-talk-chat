@@ -68,16 +68,29 @@ fun Application.module(testing: Boolean = false) {
         }
 
         get("/v1/users") {
-            TODO()
+            call.respond(Registry.users)
         }
 
         put("/v1/users/{name}") {
-            TODO()
+            val tmp = parametersOf()["name"]
+            if (tmp != null) {
+                call.respond(Registry.users[tmp] as Any)
+            }
         }
 
-        // TODO: add DELETE /v1/users/{name}
+        delete("/v1/users/{name}") {
+            val name = parametersOf()["name"]
+
+            if (name == null || !Registry.users.contains(name)) {
+                throw UserNotRegisteredException()
+            }
+            checkUserName(name) ?: throw IllegalUserNameException()
+            Registry.users.remove(name)
+            call.respond(mapOf("status" to "ok"))
+        }
     }
 }
 
 class UserAlreadyRegisteredException: RuntimeException("User already registered")
+class UserNotRegisteredException: RuntimeException("User not registered")
 class IllegalUserNameException: RuntimeException("Illegal user name")
