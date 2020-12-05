@@ -70,8 +70,6 @@ class HttpChatServer(private val host: String, private val port: Int) {
         }
 
         routing {
-            // TODO: add GET HttpOptions.healthCheckPath route
-            // TODO: add POST HttpOptions.path route
             get("v1/health") {
                 val users = call.receive<List<UserInfo>>()
                 call.respond(mapOf("OK" to true))
