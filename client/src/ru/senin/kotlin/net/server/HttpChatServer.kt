@@ -1,9 +1,12 @@
 package ru.senin.kotlin.net.server
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.jackson.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -11,6 +14,8 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import ru.senin.kotlin.net.Message
+import ru.senin.kotlin.net.UserInfo
 
 
 interface ChatMessageListener {
@@ -59,12 +64,29 @@ class HttpChatServer(private val host: String, private val port: Int) {
         }
 
         install(ContentNegotiation) {
-//             TODO: initialize jackson
+            jackson {
+                enable(SerializationFeature.INDENT_OUTPUT)
+            }
         }
 
         routing {
             // TODO: add GET HttpOptions.healthCheckPath route
             // TODO: add POST HttpOptions.path route
+            get("v1/health") {
+                val users = call.receive<List<UserInfo>>()
+                call.respond(mapOf("OK" to true))
+            }
+
+            post("/v1/message") {
+                val message = call.receive<Message>()
+                if (listener != null) {
+                    listener?.messageReceived(message.user, message.text)
+                    call.respond(mapOf("OK" to true))
+                } else {
+                    call.respond(mapOf("OK" to false))
+                }
+            }
+
             install(StatusPages) {
                 exception<IllegalArgumentException> {
                     call.respond(HttpStatusCode.BadRequest)
