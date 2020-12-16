@@ -1,8 +1,15 @@
 package ru.senin.kotlin.net
 
+enum class Protocol {
+    HTTP,
+    UPD,
+    WEBSOCKET
+}
+
 data class UserAddress(
-    val host: String,
-    val port: Int = 8080
+        val protocol: Protocol,
+        val host: String,
+        val port: Int = 8080
 ) {
     override fun toString(): String {
         return "http://${host}:${port}"

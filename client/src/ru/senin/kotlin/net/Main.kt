@@ -77,9 +77,9 @@ fun main(args: Array<String>) {
             val userAddress  = when {
                 parameters.publicUrl != null -> {
                     val url = URL(parameters.publicUrl)
-                    UserAddress(url.host, url.port)
+                    UserAddress(Protocol.HTTP, url.host, url.port)
                 }
-                else -> UserAddress(host, port)
+                else -> UserAddress(Protocol.HTTP, host, port)
             }
             registry.register(UserInfo(name, userAddress)).execute()
 
