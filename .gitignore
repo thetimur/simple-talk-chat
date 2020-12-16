@@ -6,3 +6,6 @@
 *.ipr
 *.iws
 client.log
+registry/build
+client/build
+shared/build
