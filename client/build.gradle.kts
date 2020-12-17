@@ -1,6 +1,10 @@
 group = "ru.senin.kotlin.net.client"
 application.mainClassName = "io.ktor.server.netty.EngineMain"
 
+sourceSets.test {
+    java.srcDirs("test")
+}
+
 dependencies {
     implementation(project(":shared"))
     

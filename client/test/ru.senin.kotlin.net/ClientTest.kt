@@ -58,17 +58,17 @@ class ClientTest {
         var sentMessageUser1 = mutableListOf<String>()
         var sentMessageUser2 = mutableListOf<String>()
 
-        val message1User1 = "abc"
-        sentMessageUser1.add(message1User1)
-        chatUser1.testMessageSent(nameUser2, message1User1)
+        for (i in 1..10) {
 
-        val message2User1 = "message2"
-        sentMessageUser1.add(message2User1)
-        chatUser1.testMessageSent(nameUser2, message2User1)
+            val messageUser1 = "abc$i"
+            sentMessageUser1.add(messageUser1)
+            chatUser1.testMessageSent(nameUser2, messageUser1)
 
-        val message3User2 = ":)"
-        sentMessageUser2.add(message3User2)
-        chatUser2.testMessageSent(nameUser1, message3User2)
+            val messageUser2 = ":)$i"
+            sentMessageUser2.add(messageUser2)
+            chatUser2.testMessageSent(nameUser1, messageUser2)
+
+        }
 
         assertEquals(sentMessageUser1, chatUser2.allMessages)
         assertEquals(sentMessageUser2, chatUser1.allMessages)
