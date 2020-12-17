@@ -41,7 +41,7 @@ class ClientTest {
     }
 
     @Test
-    fun testClient1 () {
+    fun testClientHTTP () {
 
         val host = "127.0.0.1"
 
