@@ -58,7 +58,7 @@ class ClientTest {
         val sentMessageUser1 = mutableListOf<String>()
         val sentMessageUser2 = mutableListOf<String>()
 
-        for (i in 1..10) {
+        for (i in 1..3) {
 
             val messageUser1 = "abc$i"
             sentMessageUser1.add(messageUser1)
