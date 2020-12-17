@@ -16,8 +16,6 @@ dependencies {
 
     implementation("io.ktor:ktor-server-netty:$ktor_version")
     implementation("com.google.code.gson:gson:2.8.6")
-    implementation("com.github.tinder.scarlet:scarlet:0.2.4")
-    implementation("com.github.tinder.scarlet:scarlet-protocol-websocket-okhttp:0.2.4")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-server-host-common:$ktor_version")

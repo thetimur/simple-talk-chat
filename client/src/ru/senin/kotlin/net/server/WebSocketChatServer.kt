@@ -1,9 +1,9 @@
 package ru.senin.kotlin.net.server
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.gson.Gson
 import io.ktor.application.*
+import io.ktor.client.*
+import io.ktor.client.features.websocket.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
@@ -14,11 +14,9 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.channels.mapNotNull
+import io.ktor.websocket.WebSockets
 import org.slf4j.LoggerFactory
-import org.slf4j.event.Level
 import ru.senin.kotlin.net.Message
-import ru.senin.kotlin.net.UserInfo
 import java.time.Duration
 
 class WebSocketChatServer(private val host: String, private val port: Int) : ChatServer {
@@ -52,38 +50,23 @@ class WebSocketChatServer(private val host: String, private val port: Int) : Cha
     }
 
     private fun configureModule(): Application.() -> Unit = {
-        install(CallLogging) {
-            level = Level.DEBUG
-            filter { call -> call.request.path().startsWith("/") }
-        }
-
         install(WebSockets) {
             pingPeriod = Duration.ofSeconds(60) // Disabled (null) by default
             timeout = Duration.ofSeconds(15)
-            maxFrameSize = Long.MAX_VALUE // Disabled (max value). The connection will be closed if surpassed this length.
+            maxFrameSize =
+                Long.MAX_VALUE // Disabled (max value). The connection will be closed if surpassed this length.
             masking = false
         }
 
-        install(DefaultHeaders) {
-            header("X-Engine", "Ktor") // will send this header with each response
-        }
-
-        install(ContentNegotiation) {
-            jackson {
-                enable(SerializationFeature.INDENT_OUTPUT)
-            }
-        }
-
         routing {
-            webSocket("/v1/ws/message") {
-                for (frame in incoming.mapNotNull { it as? Frame.Text }) {
-                    val text = frame.readText()
-                    val message = Gson().fromJson(text, Message::class.java)
-                    if (listener != null) {
-                        listener?.messageReceived(message.user, message.text)
-                        call.respond(mapOf("OK" to true))
-                    } else {
-                        call.respond(mapOf("OK" to false))
+            webSocket("/v1/ws/message") { // websocketSession
+                for (frame in incoming) {
+                    when (frame) {
+                        is Frame.Text -> {
+                            val message = Gson().fromJson(frame.readText(), Message::class.java)
+                            listener?.messageReceived(message.user, message.text)
+                            call.respond(mapOf("status" to "ok"))
+                        }
                     }
                 }
             }
