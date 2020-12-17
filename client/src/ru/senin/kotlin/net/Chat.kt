@@ -2,8 +2,10 @@ package ru.senin.kotlin.net
 
 import ru.senin.kotlin.net.client.ChatClient
 import ru.senin.kotlin.net.client.HttpChatClient
+import ru.senin.kotlin.net.client.UdpChatClient
 import ru.senin.kotlin.net.client.WebSocketChatClient
 import ru.senin.kotlin.net.server.ChatMessageListener
+import ru.senin.kotlin.net.server.UdpChatServer
 
 class Chat(
     private val name: String,
@@ -14,7 +16,6 @@ class Chat(
     private var selectedUser: String? = null
     private val clients = mutableMapOf<String, ChatClient>()
     private var users =  mutableMapOf<String, UserAddress>()
-    private var protocol = Protocol.WEBSOCKET
 
     private fun prompt(): String {
         val prompt = "  to [${selectedUser ?: "<not selected>"}] <<< "
@@ -71,7 +72,11 @@ class Chat(
             return
         }
         val client = clients.getOrPut(currentUser) {
-            HttpChatClient(address.host, address.port)
+            when (address.protocol) {
+                Protocol.WEBSOCKET -> WebSocketChatClient(address.host, address.port)
+                Protocol.HTTP -> HttpChatClient(address.host, address.port)
+                Protocol.UDP -> UdpChatClient(address.host, address.port)
+            }
         }
         try {
             client.sendMessage(Message(name, text))

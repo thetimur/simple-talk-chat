@@ -23,7 +23,7 @@ interface ChatMessageListener {
 }
 
 class HttpChatServer(private val host: String, private val port: Int) : ChatServer {
-    private val objectMapper = jacksonObjectMapper()
+
     private var listener: ChatMessageListener? = null
 
     private val engine = createEngine()
@@ -71,7 +71,6 @@ class HttpChatServer(private val host: String, private val port: Int) : ChatServ
 
         routing {
             get("v1/health") {
-                val users = call.receive<List<UserInfo>>()
                 call.respond(mapOf("OK" to true))
             }
 
@@ -93,6 +92,3 @@ class HttpChatServer(private val host: String, private val port: Int) : ChatServ
         }
     }
 }
-
-// Send test message using curl:
-// curl -v -X POST http://localhost:8080/v1/message -H "Content-type: application/json" -d '{ "user":"ivanov", "text":"Hello!"}'
