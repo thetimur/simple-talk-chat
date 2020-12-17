@@ -1,6 +1,8 @@
 package ru.senin.kotlin.net
 
+import ru.senin.kotlin.net.client.ChatClient
 import ru.senin.kotlin.net.client.HttpChatClient
+import ru.senin.kotlin.net.client.WebSocketChatClient
 import ru.senin.kotlin.net.server.ChatMessageListener
 
 class Chat(
@@ -10,7 +12,7 @@ class Chat(
 
     private var exit = false
     private var selectedUser: String? = null
-    private val clients = mutableMapOf<String, HttpChatClient>()
+    private val clients = mutableMapOf<String, ChatClient>()
     private var users =  mutableMapOf<String, UserAddress>()
     var allMessages = mutableListOf<String>()
 

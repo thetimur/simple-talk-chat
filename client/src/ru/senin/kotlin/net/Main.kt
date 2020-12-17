@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import ru.senin.kotlin.net.server.HttpChatServer
+import ru.senin.kotlin.net.server.WebSocketChatServer
 import java.net.URL
 import kotlin.concurrent.thread
 
@@ -35,6 +36,10 @@ class Parameters : Arkenv() {
     val publicUrl : String? by argument("--public-url") {
         description = "Public URL"
     }
+
+    val protocol: String by argument("--protocol") {
+        defaultValue = { "http" }
+    }
 }
 
 val log: Logger = LoggerFactory.getLogger("main")
@@ -50,7 +55,11 @@ fun main(args: Array<String>) {
         }
         val host = parameters.host
         val port = parameters.port
-
+        val protocol = when(parameters.protocol) {
+            "websocket" -> Protocol.WEBSOCKET
+            "udp" -> Protocol.UDP
+            else -> Protocol.HTTP
+        }
         // TODO: validate host and port
 
         val name = parameters.name
@@ -64,7 +73,12 @@ fun main(args: Array<String>) {
             .build().create(RegistryApi::class.java)
 
         // create server engine
-        val server = HttpChatServer(host, port)
+//        val server = HttpChatServer(host, port)
+        val server = when(protocol) {
+            Protocol.HTTP -> HttpChatServer(host, port)
+            Protocol.WEBSOCKET -> WebSocketChatServer(host, port)
+            Protocol.UDP -> HttpChatServer(host, port)
+        }
         val chat = Chat(name, registry)
         server.setMessageListener(chat)
 
@@ -77,9 +91,9 @@ fun main(args: Array<String>) {
             val userAddress  = when {
                 parameters.publicUrl != null -> {
                     val url = URL(parameters.publicUrl)
-                    UserAddress(url.host, url.port)
+                    UserAddress(protocol, url.host, url.port)
                 }
-                else -> UserAddress(host, port)
+                else -> UserAddress(protocol, host, port)
             }
             registry.register(UserInfo(name, userAddress)).execute()
 
