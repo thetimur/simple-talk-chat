@@ -16,6 +16,7 @@ class Chat(
     private var selectedUser: String? = null
     private val clients = mutableMapOf<String, ChatClient>()
     private var users =  mutableMapOf<String, UserAddress>()
+    var allMessages = mutableListOf<String>()
 
     private fun prompt(): String {
         val prompt = "  to [${selectedUser ?: "<not selected>"}] <<< "
@@ -86,6 +87,17 @@ class Chat(
         }
     }
 
+    fun testMessageSent (userName: String, text: String) {
+
+        selectUser(userName)
+        message(text)
+
+    }
+
+    fun updateUsers () {
+        updateUsersList()
+    }
+
     fun commandLoop() {
         var input: String
         printWelcome()
@@ -126,6 +138,7 @@ class Chat(
     }
 
     override fun messageReceived(userName: String, text: String) {
+        allMessages.add(text)
         println("\nfrom [$userName] >>> $text")
     }
 }
