@@ -27,7 +27,7 @@ class ClientTest {
             server.start()
         }
 
-        registry.register(UserInfo(name, UserAddress(host, port))).execute()
+        registry.register(UserInfo(name, UserAddress(Protocol.HTTP, host, port))).execute()
 
         return listOf (chat, server, serverJob)
     }
@@ -55,8 +55,8 @@ class ClientTest {
         val (chatUser2, serverUser2, serverJobUser2) = addUser(nameUser2, host, portUser2)
         (chatUser2 as Chat).updateUsers()
 
-        var sentMessageUser1 = mutableListOf<String>()
-        var sentMessageUser2 = mutableListOf<String>()
+        val sentMessageUser1 = mutableListOf<String>()
+        val sentMessageUser2 = mutableListOf<String>()
 
         for (i in 1..10) {
 
