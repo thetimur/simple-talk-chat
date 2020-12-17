@@ -71,17 +71,23 @@ fun Application.module(testing: Boolean = false) {
             call.respond(Registry.users)
         }
 
-        put("/v1/users/{name}") {
-            val tmp = parametersOf()["name"]
-            if (tmp != null) {
-                call.respond(Registry.users[tmp] as Any)
+        put("/v1/users/{user}") {
+            val user = call.receive<UserInfo>()
+
+            if (!Registry.users.containsKey(user.name)) {
+                throw UserNotRegisteredException()
             }
+            checkUserName(user.name) ?: throw IllegalUserNameException()
+            Registry.users[user.name] = user.address
+            call.respond(mapOf("status" to "ok"))
         }
 
-        delete("/v1/users/{name}") {
-            val name = parametersOf()["name"]
+        delete("/v1/users/{user}") {
+            val name = call.parameters["user"]
 
-            if (name == null || !Registry.users.contains(name)) {
+            println(name)
+
+            if (name == null || !Registry.users.containsKey(name)) {
                 throw UserNotRegisteredException()
             }
             checkUserName(name) ?: throw IllegalUserNameException()

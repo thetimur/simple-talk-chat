@@ -47,7 +47,9 @@ class ApplicationTest {
 
     @Ignore
     @Test
-    fun `register user`() = withRegisteredTestUser { }
+    fun `register user`() = withRegisteredTestUser {
+
+    }
 
     @Ignore
     @Test
@@ -58,7 +60,7 @@ class ApplicationTest {
     @Ignore
     @Test
     fun `delete user`() = withRegisteredTestUser {
-        TODO()
+
     }
 
     private fun withRegisteredTestUser(block: TestApplicationEngine.() -> Unit) {
