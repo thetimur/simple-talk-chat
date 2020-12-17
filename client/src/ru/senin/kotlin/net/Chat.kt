@@ -71,10 +71,10 @@ class Chat(
             return
         }
         val client = clients.getOrPut(currentUser) {
-            WebSocketChatClient(address.host, address.port)
+            HttpChatClient(address.host, address.port)
         }
         try {
-            (client as WebSocketChatClient).sendMessage(Message(name, text))
+            client.sendMessage(Message(name, text))
         }
         catch(e: Exception) {
             println("Error! ${e.message}")

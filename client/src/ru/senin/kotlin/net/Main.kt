@@ -36,6 +36,10 @@ class Parameters : Arkenv() {
     val publicUrl : String? by argument("--public-url") {
         description = "Public URL"
     }
+
+    val protocol: String by argument("--protocol") {
+        defaultValue = { "http" }
+    }
 }
 
 val log: Logger = LoggerFactory.getLogger("main")
@@ -51,7 +55,11 @@ fun main(args: Array<String>) {
         }
         val host = parameters.host
         val port = parameters.port
-        val protocol = Protocol.WEBSOCKET
+        val protocol = when(parameters.protocol) {
+            "websocket" -> Protocol.WEBSOCKET
+            "udp" -> Protocol.UDP
+            else -> Protocol.HTTP
+        }
         // TODO: validate host and port
 
         val name = parameters.name
@@ -66,7 +74,11 @@ fun main(args: Array<String>) {
 
         // create server engine
 //        val server = HttpChatServer(host, port)
-        val server = WebSocketChatServer(host, port)
+        val server = when(protocol) {
+            Protocol.HTTP -> HttpChatServer(host, port)
+            Protocol.WEBSOCKET -> WebSocketChatServer(host, port)
+            Protocol.UDP -> HttpChatServer(host, port)
+        }
         val chat = Chat(name, registry)
         server.setMessageListener(chat)
 

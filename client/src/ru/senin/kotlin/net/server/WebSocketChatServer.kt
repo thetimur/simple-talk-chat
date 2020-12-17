@@ -22,7 +22,6 @@ import ru.senin.kotlin.net.UserInfo
 import java.time.Duration
 
 class WebSocketChatServer(private val host: String, private val port: Int) : ChatServer {
-    private val objectMapper = jacksonObjectMapper()
     private var listener: ChatMessageListener? = null
 
     private val engine = createEngine()
@@ -48,7 +47,7 @@ class WebSocketChatServer(private val host: String, private val port: Int) : Cha
         engine.stop(1000, 2000)
     }
 
-    fun setMessageListener(listener: ChatMessageListener) {
+    override fun setMessageListener(listener: ChatMessageListener) {
         this.listener = listener
     }
 
@@ -91,6 +90,3 @@ class WebSocketChatServer(private val host: String, private val port: Int) : Cha
         }
     }
 }
-
-// Send test message using curl:
-// curl -v -X POST http://localhost:8080/v1/message -H "Content-type: application/json" -d '{ "user":"ivanov", "text":"Hello!"}'

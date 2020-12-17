@@ -49,7 +49,7 @@ class HttpChatServer(private val host: String, private val port: Int) : ChatServ
         engine.stop(1000, 2000)
     }
 
-    fun setMessageListener(listener: ChatMessageListener) {
+    override fun setMessageListener(listener: ChatMessageListener) {
         this.listener = listener
     }
 
