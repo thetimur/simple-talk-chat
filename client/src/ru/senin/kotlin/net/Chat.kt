@@ -16,7 +16,9 @@ class Chat(
     private var selectedUser: String? = null
     private val clients = mutableMapOf<String, ChatClient>()
     private var users =  mutableMapOf<String, UserAddress>()
-    var allMessages = mutableListOf<String>()
+    private val allMessages = mutableListOf<String>()
+
+    fun getAllMessages() = allMessages
 
     private fun prompt(): String {
         val prompt = "  to [${selectedUser ?: "<not selected>"}] <<< "

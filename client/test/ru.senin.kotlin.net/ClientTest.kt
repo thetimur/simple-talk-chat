@@ -1,11 +1,10 @@
-package ru.senin.kotlin.net.registry
+package ru.senin.kotlin.net
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.websocket.*
 import org.junit.jupiter.api.Test
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
-import ru.senin.kotlin.net.*
 import ru.senin.kotlin.net.server.HttpChatServer
 import ru.senin.kotlin.net.server.UdpChatServer
 import ru.senin.kotlin.net.server.WebSocketChatServer
@@ -54,7 +53,6 @@ class ClientTest {
         }
 
         serverJob.join()
-
     }
 
     @Test
@@ -125,8 +123,8 @@ class ClientTest {
 
         }
 
-        assertEquals(sentMessageUser1, chatUser2.allMessages)
-        assertEquals(sentMessageUser2, chatUser1.allMessages)
+        assertEquals(sentMessageUser1, chatUser2.getAllMessages())
+        assertEquals(sentMessageUser2, chatUser1.getAllMessages())
 
         deleteUser(nameUser1, serverUser1 as WebSocketChatServer, serverJobUser1 as Thread, Protocol.WEBSOCKET)
         deleteUser(nameUser2, serverUser2 as WebSocketChatServer, serverJobUser2 as Thread, Protocol.WEBSOCKET)
