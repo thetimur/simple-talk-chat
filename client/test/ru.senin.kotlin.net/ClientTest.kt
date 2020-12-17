@@ -48,11 +48,11 @@ class ClientTest {
         val nameUser1 = "User1"
         val portUser1 = 8081
         val (chatUser1, serverUser1, serverJobUser1) = addUser(nameUser1, host, portUser1)
-        (chatUser1 as Chat).updateUsers()
 
         val nameUser2 = "User2"
         val portUser2 = 8082
         val (chatUser2, serverUser2, serverJobUser2) = addUser(nameUser2, host, portUser2)
+        (chatUser1 as Chat).updateUsers()
         (chatUser2 as Chat).updateUsers()
 
         val sentMessageUser1 = mutableListOf<String>()
