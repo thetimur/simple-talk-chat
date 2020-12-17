@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
 import io.ktor.jackson.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
@@ -56,32 +57,16 @@ class UdpChatServer(private val host: String, private val port: Int) : ChatServe
     }
 
     private fun configureModule(): Application.() -> Unit = {
+        runBlocking {
+            val server = aSocket(ActorSelectorManager(Dispatchers.IO)).udp().bind(InetSocketAddress(host, port))
 
-        routing {
-            runBlocking {
-                val server = aSocket(ActorSelectorManager(Dispatchers.IO)).tcp().bind(InetSocketAddress(host, port))
-                println("Started at ${server.localAddress}")
-
-                while (true) {
-                    val socket = server.accept()
-
-                    launch {
-
-                        val input = socket.openReadChannel().readUTF8Line()
-
-                        try {
-                            try {
-                                val message = Gson().fromJson(input, Message::class.java)
-                                listener?.messageReceived(message.user, message.text)
-                            } catch (e : Exception) {
-                                println("Cannot translate $input")
-                                throw IllegalStateException()
-                            }
-                        } catch (e: Throwable) {
-                            e.printStackTrace()
-                            socket.close()
-                        }
-                    }
+            while (true) {
+                val socketLine = server.incoming.receive().packet.readText()
+                try {
+                    val message = Gson().fromJson(socketLine, Message::class.java)
+                    listener?.messageReceived(message.user, message.text)
+                } catch (e : Throwable) {
+                    println("Cannot parse")
                 }
             }
         }

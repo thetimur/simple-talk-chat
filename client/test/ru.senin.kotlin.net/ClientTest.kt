@@ -1,10 +1,9 @@
-package ru.senin.kotlin.net.registry
+package ru.senin.kotlin.net
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.Test
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
-import ru.senin.kotlin.net.*
 import ru.senin.kotlin.net.server.HttpChatServer
 import kotlin.concurrent.thread
 import kotlin.test.assertEquals
@@ -32,12 +31,10 @@ class ClientTest {
         return listOf (chat, server, serverJob)
     }
 
-    fun deleteUser (name: String, server: HttpChatServer, serverJob: Thread) {
-
+    private fun deleteUser (name: String, server: HttpChatServer, serverJob: Thread) {
         registry.unregister(name).execute()
         server.stop()
         serverJob.join()
-
     }
 
     @Test
@@ -70,8 +67,8 @@ class ClientTest {
 
         }
 
-        assertEquals(sentMessageUser1, chatUser2.allMessages)
-        assertEquals(sentMessageUser2, chatUser1.allMessages)
+        assertEquals(sentMessageUser1, chatUser2.getAllMessages())
+        assertEquals(sentMessageUser2, chatUser1.getAllMessages())
 
         deleteUser(nameUser1, serverUser1 as HttpChatServer, serverJobUser1 as Thread)
         deleteUser(nameUser2, serverUser2 as HttpChatServer, serverJobUser2 as Thread)
