@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import ru.senin.kotlin.net.server.HttpChatServer
+import ru.senin.kotlin.net.server.WebSocketChatServer
 import java.net.URL
 import kotlin.concurrent.thread
 
@@ -50,7 +51,7 @@ fun main(args: Array<String>) {
         }
         val host = parameters.host
         val port = parameters.port
-
+        val protocol = Protocol.WEBSOCKET
         // TODO: validate host and port
 
         val name = parameters.name
@@ -64,7 +65,8 @@ fun main(args: Array<String>) {
             .build().create(RegistryApi::class.java)
 
         // create server engine
-        val server = HttpChatServer(host, port)
+//        val server = HttpChatServer(host, port)
+        val server = WebSocketChatServer(host, port)
         val chat = Chat(name, registry)
         server.setMessageListener(chat)
 
@@ -77,9 +79,9 @@ fun main(args: Array<String>) {
             val userAddress  = when {
                 parameters.publicUrl != null -> {
                     val url = URL(parameters.publicUrl)
-                    UserAddress(Protocol.HTTP, url.host, url.port)
+                    UserAddress(protocol, url.host, url.port)
                 }
-                else -> UserAddress(Protocol.HTTP, host, port)
+                else -> UserAddress(protocol, host, port)
             }
             registry.register(UserInfo(name, userAddress)).execute()
 
