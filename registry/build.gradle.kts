@@ -6,6 +6,7 @@ dependencies {
     val logback_version: String by project
 
     implementation(project(":shared"))
+    implementation("com.google.code.gson:gson:2.8.6")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-core:$ktor_version")

@@ -2,8 +2,16 @@ package ru.senin.kotlin.net
 
 enum class Protocol {
     HTTP,
-    UPD,
+    UDP,
     WEBSOCKET
+}
+
+fun Protocol.getPrefix() : String {
+    return when(this) {
+        Protocol.HTTP -> "http"
+        Protocol.WEBSOCKET -> "ws"
+        Protocol.UDP -> "udp"
+    }
 }
 
 data class UserAddress(
@@ -12,7 +20,7 @@ data class UserAddress(
         val port: Int = 8080
 ) {
     override fun toString(): String {
-        return "http://${host}:${port}"
+        return "${protocol.getPrefix()}://${host}:${port}"
     }
 }
 

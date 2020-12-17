@@ -33,6 +33,7 @@ subprojects {
 
     repositories {
         jcenter()
+        maven { url = uri("https://jitpack.io") }
     }
 
     dependencies {
