@@ -91,10 +91,8 @@ class Chat(
 
     fun testMessageSent (userName: String, text: String, protocol: Protocol, host: String, port: Int) {
 
-        // select TODO()
         users[userName] = UserAddress(protocol, host, port)
         selectedUser = userName
-
 
         message(text)
 
