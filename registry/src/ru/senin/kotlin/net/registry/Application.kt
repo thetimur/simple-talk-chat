@@ -87,7 +87,7 @@ fun Application.module(testing: Boolean = false) {
 
             println(name)
 
-            if (name == null || !Registry.users.containsKey(name)) {
+            if (name == null) {
                 throw UserNotRegisteredException()
             }
             checkUserName(name) ?: throw IllegalUserNameException()
