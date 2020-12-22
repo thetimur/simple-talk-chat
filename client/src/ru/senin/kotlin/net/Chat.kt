@@ -89,9 +89,11 @@ class Chat(
         }
     }
 
-    fun testMessageSent (userName: String, text: String) {
+    fun testMessageSent (userName: String, text: String, protocol: Protocol, host: String, port: Int) {
 
-        selectUser(userName)
+        users[userName] = UserAddress(protocol, host, port)
+        selectedUser = userName
+
         message(text)
 
     }
