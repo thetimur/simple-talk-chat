@@ -15,14 +15,8 @@ import kotlin.test.assertEquals
 
 class ClientTest {
 
-    private val objectMapper = jacksonObjectMapper()
-    private val registry: RegistryApi = Retrofit.Builder()
-        .baseUrl("http://localhost:8088")
-        .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-        .build().create(RegistryApi::class.java)
 
-
-    private fun addUser (name: String, host: String, port: Int, protocol: Protocol): List<Any> {
+    private fun addUser (name: String, host: String, port: Int, protocol: Protocol): Chat {
 
         val server = when(protocol) {
             Protocol.HTTP -> HttpChatServer(host, port)
@@ -31,28 +25,14 @@ class ClientTest {
             else -> UdpChatServer(host, port)
         }
 
-        val chat = Chat(name, registry)
+        val chat = Chat(name, null)
         server.setMessageListener(chat)
 
-        val serverJob = thread {
+        thread {
             server.start()
         }
 
-        return listOf (chat, server, serverJob)
-    }
-
-    private fun deleteUser (server: Any, serverJob: Thread, protocol: Protocol) {
-
-        when(protocol){
-
-            Protocol.HTTP -> (server as HttpChatServer).stop()
-            Protocol.WEBSOCKET -> (server as WebSocketChatServer).stop()
-            Protocol.UDP -> (server as UdpChatServer).stop()
-            else -> (server as UdpChatServer).stop()
-        }
-
-        serverJob.join()
-
+        return chat
     }
 
     @Test
@@ -63,16 +43,18 @@ class ClientTest {
 
         val nameUser1 = "User1"
         val portUser1 = 8081
-        val (chatUser1, serverUser1, serverJobUser1) = addUser(nameUser1, host, portUser1, protocol)
+        val chatUser1 = addUser(nameUser1, host, portUser1, protocol)
 
         val nameUser2 = "User2"
         val portUser2 = 8082
-        val (chatUser2, serverUser2, serverJobUser2) = addUser(nameUser2, host, portUser2, protocol)
-        (chatUser1 as Chat).updateUsers()
-        (chatUser2 as Chat).updateUsers()
+        val chatUser2 = addUser(nameUser2, host, portUser2, protocol)
+        chatUser1.updateUsers()
+        chatUser2.updateUsers()
 
         val sentMessageUser1 = mutableListOf<String>()
         val sentMessageUser2 = mutableListOf<String>()
+
+        sleep(1000)
 
         for (i in 1..3) {
 
@@ -88,10 +70,6 @@ class ClientTest {
 
         assertEquals(sentMessageUser1, chatUser2.getAllMessages())
         assertEquals(sentMessageUser2, chatUser1.getAllMessages())
-
-        deleteUser(serverUser1 as HttpChatServer, serverJobUser1 as Thread, protocol)
-        deleteUser(serverUser2 as HttpChatServer, serverJobUser2 as Thread, protocol)
-
     }
 
     @Test
@@ -102,13 +80,15 @@ class ClientTest {
 
         val nameUser1 = "User1"
         val portUser1 = 8083
-        val (chatUser1, serverUser1, serverJobUser1) = addUser(nameUser1, host, portUser1, protocol)
+        val chatUser1 = addUser(nameUser1, host, portUser1, protocol)
 
         val nameUser2 = "User2"
         val portUser2 = 8084
-        val (chatUser2, serverUser2, serverJobUser2) = addUser(nameUser2, host, portUser2, protocol)
-        (chatUser1 as Chat).updateUsers()
-        (chatUser2 as Chat).updateUsers()
+        val chatUser2 = addUser(nameUser2, host, portUser2, protocol)
+        chatUser1.updateUsers()
+        chatUser2.updateUsers()
+
+        sleep(1000)
 
         val sentMessageUser1 = mutableListOf<String>()
         val sentMessageUser2 = mutableListOf<String>()
@@ -127,13 +107,8 @@ class ClientTest {
 
         assertEquals(sentMessageUser1, chatUser2.getAllMessages())
         assertEquals(sentMessageUser2, chatUser1.getAllMessages())
-
-        deleteUser(serverUser1 as WebSocketChatServer, serverJobUser1 as Thread, protocol)
-        deleteUser(serverUser2 as WebSocketChatServer, serverJobUser2 as Thread, protocol)
-
     }
 
-    @Ignore
     @Test
     fun testClientUDP () {
 
@@ -142,18 +117,20 @@ class ClientTest {
 
         val nameUser1 = "User1"
         val portUser1 = 3000
-        val (chatUser1, serverUser1, serverJobUser1) = addUser(nameUser1, host, portUser1, protocol)
+        val chatUser1 = addUser(nameUser1, host, portUser1, protocol)
 
         val nameUser2 = "User2"
         val portUser2 = 3001
-        val (chatUser2, serverUser2, serverJobUser2) = addUser(nameUser2, host, portUser2, protocol)
-        (chatUser1 as Chat).updateUsers()
-        (chatUser2 as Chat).updateUsers()
+        val chatUser2 = addUser(nameUser2, host, portUser2, protocol)
+        chatUser1.updateUsers()
+        chatUser2.updateUsers()
 
         val sentMessageUser1 = mutableListOf<String>()
         val sentMessageUser2 = mutableListOf<String>()
 
-        for (i in 1..5) {
+        sleep(2000)
+
+        for (i in 1..3) {
 
             val messageUser1 = "abc$i"
             sentMessageUser1.add(messageUser1)
@@ -162,15 +139,11 @@ class ClientTest {
             val messageUser2 = ":)$i"
             sentMessageUser2.add(messageUser2)
             chatUser2.testMessageSent(nameUser1, messageUser2, protocol, host, portUser1)
-
+            sleep(1000)
         }
 
         assertEquals(sentMessageUser1, chatUser2.getAllMessages())
         assertEquals(sentMessageUser2, chatUser1.getAllMessages())
-
-        deleteUser(serverUser1 as UdpChatServer, serverJobUser1 as Thread, protocol)
-        deleteUser(serverUser2 as UdpChatServer, serverJobUser2 as Thread, protocol)
-
     }
 
 }

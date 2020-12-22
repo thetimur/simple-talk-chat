@@ -28,7 +28,8 @@ import java.net.InetSocketAddress
 class UdpChatServer(private val host: String, private val port: Int) : ChatServer {
 
     private var listener: ChatMessageListener? = null
-
+    private var isServerStarted = false
+    private val server = aSocket(ActorSelectorManager(Dispatchers.IO)).udp().bind(InetSocketAddress(host, port))
     private val engine = createEngine()
 
     private fun createEngine(): NettyApplicationEngine {
@@ -45,10 +46,13 @@ class UdpChatServer(private val host: String, private val port: Int) : ChatServe
     }
 
     override fun start() {
+        isServerStarted = true
         engine.start(true)
     }
 
     override fun stop() {
+        isServerStarted = false
+        server.incoming.cancel(CancellationException("Chat closed"))
         engine.stop(1000, 2000)
     }
 
@@ -58,15 +62,13 @@ class UdpChatServer(private val host: String, private val port: Int) : ChatServe
 
     private fun configureModule(): Application.() -> Unit = {
         runBlocking {
-            val server = aSocket(ActorSelectorManager(Dispatchers.IO)).udp().bind(InetSocketAddress(host, port))
-
-            while (true) {
+            while (isServerStarted) {
                 val socketLine = server.incoming.receive().packet.readText()
                 try {
                     val message = Gson().fromJson(socketLine, Message::class.java)
                     listener?.messageReceived(message.user, message.text)
                 } catch (e : Throwable) {
-                    println("Cannot parse")
+                    e.printStackTrace()
                 }
             }
         }

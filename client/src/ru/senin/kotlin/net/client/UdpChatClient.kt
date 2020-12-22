@@ -9,6 +9,8 @@ import kotlinx.coroutines.runBlocking
 
 import ru.senin.kotlin.net.*
 import java.net.InetSocketAddress
+import java.net.SocketException
+import java.rmi.AlreadyBoundException
 
 class UdpChatClient(private val host: String, private val port: Int) : ChatClient {
 

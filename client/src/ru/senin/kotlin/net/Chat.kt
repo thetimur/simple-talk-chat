@@ -9,7 +9,7 @@ import ru.senin.kotlin.net.server.UdpChatServer
 
 class Chat(
     private val name: String,
-    private val registry: RegistryApi
+    private val registry: RegistryApi?
 ) : ChatMessageListener {
 
     private var exit = false
@@ -32,7 +32,10 @@ class Chat(
     }
 
     private fun updateUsersList() {
-        val registeredUsers = registry.list().execute().getOrNull()
+        var registeredUsers: Map<String, UserAddress>? = null
+        if (registry != null) {
+            registeredUsers = registry.list().execute().getOrNull()
+        }
         if (registeredUsers == null) {
             println("Cannot get users from registry")
             return
