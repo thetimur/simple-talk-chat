@@ -132,13 +132,8 @@ fun Application.module(testing: Boolean = false) {
         }
 
         delete("/v1/users/{user}") {
-            val name = call.parameters["user"]
+            val name = call.parameters["user"] ?: throw UserNotRegisteredException()
 
-            LoggerFactory.getLogger("$name")
-
-            if (name == null) {
-                throw UserNotRegisteredException()
-            }
             checkUserName(name) ?: throw IllegalUserNameException()
             Registry.users.remove(name)
             call.respond(mapOf("status" to "ok"))
