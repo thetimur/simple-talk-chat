@@ -23,7 +23,7 @@ import java.time.Duration
 class WebSocketChatServer(private val host: String, private val port: Int) : ChatServer {
     private var listener: ChatMessageListener? = null
     private val objectMapper = jacksonObjectMapper()
-
+    private var isServerStarted = false
     private val engine = createEngine()
 
     private fun createEngine(): NettyApplicationEngine {
@@ -40,10 +40,12 @@ class WebSocketChatServer(private val host: String, private val port: Int) : Cha
     }
 
     override fun start() {
+        isServerStarted = true
         engine.start(true)
     }
 
     override fun stop() {
+        isServerStarted = false
         engine.stop(1000, 2000)
     }
 
@@ -62,7 +64,7 @@ class WebSocketChatServer(private val host: String, private val port: Int) : Cha
 
         routing {
             webSocket("/v1/ws/message") { // websocketSession
-                while (true) {
+                while (isServerStarted) {
                     val frame = incoming.receive() as Frame.Text
                     val message = objectMapper.readValue(frame.readText(), Message::class.java)
                     listener?.messageReceived(message.user, message.text)
