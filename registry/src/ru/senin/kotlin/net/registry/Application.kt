@@ -9,6 +9,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.netty.*
+import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import ru.senin.kotlin.net.UserAddress
 import ru.senin.kotlin.net.UserInfo
@@ -85,9 +86,9 @@ fun Application.module(testing: Boolean = false) {
         delete("/v1/users/{user}") {
             val name = call.parameters["user"]
 
-            println(name)
+            LoggerFactory.getLogger("$name")
 
-            if (name == null || !Registry.users.containsKey(name)) {
+            if (name == null) {
                 throw UserNotRegisteredException()
             }
             checkUserName(name) ?: throw IllegalUserNameException()
