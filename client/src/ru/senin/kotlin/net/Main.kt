@@ -11,8 +11,10 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 import ru.senin.kotlin.net.server.HttpChatServer
 import ru.senin.kotlin.net.server.UdpChatServer
 import ru.senin.kotlin.net.server.WebSocketChatServer
+import java.lang.System.exit
 import java.net.URL
 import kotlin.concurrent.thread
+import kotlin.system.exitProcess
 
 class Parameters : Arkenv() {
     val name : String by argument("--name") {
@@ -63,8 +65,19 @@ fun main(args: Array<String>) {
         }
         val host = parameters.host
         val port = parameters.port
+      
         val protocol = parameters.protocol
-        // TODO: validate host and port
+
+        // validate host and port
+        if (port !in 0..65536) {
+            println ("bad port $port")
+            exitProcess(1)
+        }
+        if (!host.matches(Regex( "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)" +
+            "*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])\$"))) {
+            println ("bad host $host")
+            exitProcess(1)
+        }
 
         val name = parameters.name
         checkUserName(name) ?: throw IllegalArgumentException("Illegal user name '$name'")
