@@ -1,6 +1,7 @@
 package ru.senin.kotlin.net.server
 
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.gson.Gson
 import io.ktor.application.*
 import io.ktor.features.*
@@ -27,6 +28,7 @@ import java.net.InetSocketAddress
 
 class UdpChatServer(private val host: String, private val port: Int) : ChatServer {
 
+    private val objectMapper = jacksonObjectMapper()
     private var listener: ChatMessageListener? = null
 
     private val engine = createEngine()
@@ -72,7 +74,7 @@ class UdpChatServer(private val host: String, private val port: Int) : ChatServe
             while (true) {
                 val socketLine = server.incoming.receive().packet.readText()
                 try {
-                    val message = Gson().fromJson(socketLine, Message::class.java)
+                    val message = objectMapper.readValue(socketLine, Message::class.java)
                     listener?.messageReceived(message.user, message.text)
                 } catch (e : Throwable) {
                     e.printStackTrace()
