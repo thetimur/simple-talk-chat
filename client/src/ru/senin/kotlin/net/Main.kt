@@ -65,19 +65,14 @@ fun main(args: Array<String>) {
         }
 
         // validate host and port
-        if (!(port in 0..65536)) {
+        if (port !in 0..65536) {
             println ("bad port $port")
             exitProcess(1)
         }
-        if (host.split(".").size != 4 && host.split(".").size != 6) {
+        if (!host.matches(Regex( "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)" +
+            "*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])\$"))) {
             println ("bad host $host")
             exitProcess(1)
-        }
-        for (one in host.split(".")) {
-            if (!(one < "256" && one >= "0")) {
-                println ("bad host $host")
-                exitProcess(1)
-            }
         }
 
         val name = parameters.name
