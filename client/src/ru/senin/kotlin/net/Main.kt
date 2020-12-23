@@ -11,6 +11,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 import ru.senin.kotlin.net.server.HttpChatServer
 import ru.senin.kotlin.net.server.UdpChatServer
 import ru.senin.kotlin.net.server.WebSocketChatServer
+import java.lang.System.exit
 import java.net.URL
 import kotlin.concurrent.thread
 
@@ -61,7 +62,22 @@ fun main(args: Array<String>) {
             "udp" -> Protocol.UDP
             else -> Protocol.HTTP
         }
-        // TODO: validate host and port
+
+        // validate host and port
+        if (!(0 <= port && port < 1e5)) {
+            println ("bad port $port")
+            exit(1)
+        }
+        if (host.split(".").size != 4 && host.split(".").size != 6) {
+            println ("bad host $host")
+            exit(1)
+        }
+        for (one in host.split(".")) {
+            if (!(one < "256" && one >= "0")) {
+                println ("bad host $host")
+                exit(1)
+            }
+        }
 
         val name = parameters.name
         checkUserName(name) ?: throw IllegalArgumentException("Illegal user name '$name'")
