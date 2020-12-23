@@ -21,6 +21,7 @@ class UdpChatClient(private val host: String, private val port: Int) : ChatClien
     override fun sendMessage(message: Message)  {
         runBlocking {
             var counter = 0
+            var sent = false
             while (counter < UDP_TRIES) {
                 try {
                     counter++
@@ -29,14 +30,14 @@ class UdpChatClient(private val host: String, private val port: Int) : ChatClien
                         .connect(InetSocketAddress(host, port))
                         .openWriteChannel(true)
                         .write(objectMapper.writeValueAsString(message))
+                        sent = true
                         break
-                } catch (e : AlreadyBoundException) {
-                    continue
-                } catch (e : SocketException) {
-                    continue
                 } catch (e : Throwable) {
-                    e.printStackTrace()
+                    continue
                 }
+            }
+            if (!sent) {
+                throw AlreadyBoundException("Message not sent")
             }
         }
     }
