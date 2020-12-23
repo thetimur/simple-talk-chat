@@ -1,11 +1,6 @@
 package ru.senin.kotlin.net
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.websocket.*
-import org.junit.Ignore
 import org.junit.jupiter.api.Test
-import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import ru.senin.kotlin.net.server.HttpChatServer
 import ru.senin.kotlin.net.server.UdpChatServer
 import ru.senin.kotlin.net.server.WebSocketChatServer
@@ -79,11 +74,11 @@ class ClientTest {
         val host = "127.0.0.1"
 
         val nameUser1 = "User1"
-        val portUser1 = 8083
+        val portUser1 = 8090
         val chatUser1 = addUser(nameUser1, host, portUser1, protocol)
 
         val nameUser2 = "User2"
-        val portUser2 = 8084
+        val portUser2 = 8091
         val chatUser2 = addUser(nameUser2, host, portUser2, protocol)
         chatUser1.updateUsers()
         chatUser2.updateUsers()
@@ -102,6 +97,8 @@ class ClientTest {
             val messageUser2 = ":)$i"
             sentMessageUser2.add(messageUser2)
             chatUser2.testMessageSent(nameUser1, messageUser2, protocol, host, portUser1)
+
+            sleep(1000)
 
         }
 

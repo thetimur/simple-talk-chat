@@ -1,5 +1,6 @@
 package ru.senin.kotlin.net.server
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.gson.Gson
 import io.ktor.application.*
 import io.ktor.client.*
@@ -21,6 +22,7 @@ import java.time.Duration
 
 class WebSocketChatServer(private val host: String, private val port: Int) : ChatServer {
     private var listener: ChatMessageListener? = null
+    private val objectMapper = jacksonObjectMapper()
 
     private val engine = createEngine()
 
@@ -55,19 +57,15 @@ class WebSocketChatServer(private val host: String, private val port: Int) : Cha
             timeout = Duration.ofSeconds(15)
             maxFrameSize =
                 Long.MAX_VALUE // Disabled (max value). The connection will be closed if surpassed this length.
-            masking = false
+            masking = true
         }
 
         routing {
             webSocket("/v1/ws/message") { // websocketSession
-                for (frame in incoming) {
-                    when (frame) {
-                        is Frame.Text -> {
-                            val message = Gson().fromJson(frame.readText(), Message::class.java)
-                            listener?.messageReceived(message.user, message.text)
-                            call.respond(mapOf("status" to "ok"))
-                        }
-                    }
+                while (true) {
+                    val frame = incoming.receive() as Frame.Text
+                    val message = objectMapper.readValue(frame.readText(), Message::class.java)
+                    listener?.messageReceived(message.user, message.text)
                 }
             }
         }

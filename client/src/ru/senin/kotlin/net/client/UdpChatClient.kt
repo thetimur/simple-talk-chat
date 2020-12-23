@@ -1,5 +1,6 @@
 package ru.senin.kotlin.net.client
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.gson.Gson
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
@@ -14,6 +15,7 @@ import java.rmi.AlreadyBoundException
 
 class UdpChatClient(private val host: String, private val port: Int) : ChatClient {
 
+    private val objectMapper = jacksonObjectMapper()
     private val UDP_TRIES: Int = 256
 
     override fun sendMessage(message: Message)  {
@@ -21,12 +23,15 @@ class UdpChatClient(private val host: String, private val port: Int) : ChatClien
             var counter = 0
             while (counter < UDP_TRIES) {
                 try {
+                    counter++
                     aSocket(ActorSelectorManager(Dispatchers.IO))
                         .udp()
                         .connect(InetSocketAddress(host, port))
                         .openWriteChannel(true)
-                        .write(Gson().toJson(message))
+                        .write(objectMapper.writeValueAsString(message))
                         break
+                } catch (e : SocketException) {
+                    continue
                 } catch (e : Throwable) {
                     e.printStackTrace()
                 }

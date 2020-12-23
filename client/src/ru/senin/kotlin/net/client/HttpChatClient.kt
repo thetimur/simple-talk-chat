@@ -10,7 +10,6 @@ import ru.senin.kotlin.net.Protocol
 import ru.senin.kotlin.net.UserAddress
 
 class HttpChatClient(host: String, port: Int) : ChatClient {
-    private val objectMapper = jacksonObjectMapper()
     private val httpApi: HttpApi = Retrofit.Builder()
             .baseUrl(UserAddress(Protocol.HTTP, host, port).toString())
             .addConverterFactory(JacksonConverterFactory.create())

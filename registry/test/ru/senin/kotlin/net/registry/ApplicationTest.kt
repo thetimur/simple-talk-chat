@@ -57,10 +57,17 @@ class ApplicationTest {
         TODO()
     }
 
-    @Ignore
     @Test
     fun `delete user`() = withRegisteredTestUser {
-
+        withTestApplication({ testModule() }) {
+            handleRequest {
+                method = HttpMethod.Delete
+                uri = "/v1/users/$testUserName"
+            }.apply {
+                assertEquals(HttpStatusCode.OK, response.status())
+                assertEquals(mapOf("status" to "ok"), objectMapper.readValue(response.content ?: ""))
+            }
+        }
     }
 
     private fun withRegisteredTestUser(block: TestApplicationEngine.() -> Unit) {
