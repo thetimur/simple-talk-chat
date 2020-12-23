@@ -45,16 +45,62 @@ class ApplicationTest {
         }
     }
 
-    @Ignore
     @Test
     fun `register user`() = withRegisteredTestUser {
-
+        withTestApplication({ testModule() }) {
+            handleRequest {
+                method = HttpMethod.Post
+                uri = "/v1/users"
+                addHeader("Content-type", "application/json")
+                setBody(objectMapper.writeValueAsString(
+                        UserInfo(
+                                "Name",
+                                UserAddress(Protocol.HTTP, "127.0.0.1", 9998))
+                        )
+                )
+            }.apply {
+                assertEquals(HttpStatusCode.OK, response.status())
+                val content = response.content ?: fail("No response content")
+                val info = objectMapper.readValue<HashMap<String,String>>(content)
+                assertNotNull(info["status"])
+                assertEquals("ok", info["status"])
+            }
+        }
     }
 
-    @Ignore
     @Test
     fun `list users`() = withRegisteredTestUser {
-        TODO()
+        withTestApplication({ testModule() }) {
+            handleRequest {
+                method = HttpMethod.Post
+                uri = "/v1/users"
+                addHeader("Content-type", "application/json")
+                setBody(objectMapper.writeValueAsString(
+                        UserInfo(
+                                "Name",
+                                UserAddress(Protocol.HTTP, "127.0.0.1", 9998))
+                )
+                )
+            }.apply {
+                assertEquals(HttpStatusCode.OK, response.status())
+                val content = response.content ?: fail("No response content")
+                val info = objectMapper.readValue<HashMap<String,String>>(content)
+                assertNotNull(info["status"])
+                assertEquals("ok", info["status"])
+            }
+        }
+        withTestApplication({ testModule() }) {
+            handleRequest {
+                method = HttpMethod.Get
+                uri = "/v1/users"
+            }.apply {
+                assertEquals(HttpStatusCode.OK, response.status())
+                assertEquals(mapOf(
+                        testUserName to testHttpAddress,
+                        "Name" to UserAddress(Protocol.HTTP, "127.0.0.1", 9998)
+                    ), objectMapper.readValue(response.content ?: ""))
+            }
+        }
     }
 
     @Test

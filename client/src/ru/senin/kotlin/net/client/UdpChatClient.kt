@@ -30,6 +30,8 @@ class UdpChatClient(private val host: String, private val port: Int) : ChatClien
                         .openWriteChannel(true)
                         .write(objectMapper.writeValueAsString(message))
                         break
+                } catch (e : AlreadyBoundException) {
+                    continue
                 } catch (e : SocketException) {
                     continue
                 } catch (e : Throwable) {
