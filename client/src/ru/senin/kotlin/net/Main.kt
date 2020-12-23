@@ -38,8 +38,15 @@ class Parameters : Arkenv() {
         description = "Public URL"
     }
 
-    val protocol: String by argument("--protocol") {
-        defaultValue = { "http" }
+    val protocol: Protocol by argument("--protocol") {
+        defaultValue = { Protocol.HTTP }
+        mapping = {
+            when(it) {
+                "websocket" -> Protocol.WEBSOCKET
+                "udp" -> Protocol.UDP
+                else -> Protocol.HTTP
+            }
+        }
     }
 }
 
@@ -56,11 +63,7 @@ fun main(args: Array<String>) {
         }
         val host = parameters.host
         val port = parameters.port
-        val protocol = when(parameters.protocol) {
-            "websocket" -> Protocol.WEBSOCKET
-            "udp" -> Protocol.UDP
-            else -> Protocol.HTTP
-        }
+        val protocol = parameters.protocol
         // TODO: validate host and port
 
         val name = parameters.name
@@ -91,7 +94,10 @@ fun main(args: Array<String>) {
             val userAddress  = when {
                 parameters.publicUrl != null -> {
                     val url = URL(parameters.publicUrl)
-                    UserAddress(protocol, url.host, url.port)
+                    when (url.port) {
+                        in 1..65536 -> UserAddress(protocol, url.host, url.port)
+                        else -> UserAddress(protocol, url.host, 80)
+                    }
                 }
                 else -> UserAddress(protocol, host, port)
             }
