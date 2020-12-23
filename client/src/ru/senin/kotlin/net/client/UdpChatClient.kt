@@ -22,6 +22,7 @@ class UdpChatClient(private val host: String, private val port: Int) : ChatClien
         runBlocking {
             var counter = 0
             var sent = false
+            var exception = Throwable("Message not sent")
             while (counter < UDP_TRIES) {
                 try {
                     counter++
@@ -33,11 +34,12 @@ class UdpChatClient(private val host: String, private val port: Int) : ChatClien
                         sent = true
                         break
                 } catch (e : Throwable) {
+                    exception = e
                     continue
                 }
             }
             if (!sent) {
-                throw AlreadyBoundException("Message not sent")
+                throw exception
             }
         }
     }
