@@ -29,7 +29,7 @@ class UdpChatClient(private val host: String, private val port: Int) : ChatClien
                             .write(objectMapper.writeValueAsString(message))
                     break
                 } catch (e : Throwable) {
-                    // Ktor may fail sometimes
+                    // Ktor UDP may fail sometimes
                 }
             }
         }

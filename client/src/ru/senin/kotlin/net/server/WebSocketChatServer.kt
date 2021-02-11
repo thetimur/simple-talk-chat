@@ -1,7 +1,6 @@
 package ru.senin.kotlin.net.server
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.google.gson.Gson
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.features.websocket.*
