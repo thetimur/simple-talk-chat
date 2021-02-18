@@ -5,6 +5,7 @@
 *.iml
 *.ipr
 *.iws
+registry/*.mv.db
 client.log
 registry/build
 client/build

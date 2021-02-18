@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Test
 import ru.senin.kotlin.net.Protocol
 import ru.senin.kotlin.net.UserAddress
 import ru.senin.kotlin.net.UserInfo
-import kotlin.test.Ignore
+import ru.senin.kotlin.net.registry.storage.DBUserStorage
+import ru.senin.kotlin.net.registry.storage.MemoryUserStorage
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.fail
@@ -30,9 +31,15 @@ class ApplicationTest {
     private val testHttpAddress = UserAddress(Protocol.HTTP, "127.0.0.1", 9999)
     private val userData = UserInfo(testUserName, testHttpAddress)
 
+    init {
+        Registry.users = DBUserStorage("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "org.h2.Driver")
+//        Registry.users = MemoryUserStorage()
+        Registry.users.init()
+    }
+
     @BeforeEach
     fun clearRegistry() {
-        Registry.users.clear()
+        Registry.users.clearStorage()
     }
 
     @Test
@@ -74,7 +81,7 @@ class ApplicationTest {
             addHeader("Content-type", "application/json")
             setBody(objectMapper.writeValueAsString(
                     UserInfo(
-                            "Name",
+                            "Name1",
                             UserAddress(Protocol.HTTP, "127.0.0.1", 9998))
             )
             )
@@ -92,7 +99,7 @@ class ApplicationTest {
             assertEquals(HttpStatusCode.OK, response.status())
             assertEquals(mapOf(
                     testUserName to testHttpAddress,
-                    "Name" to UserAddress(Protocol.HTTP, "127.0.0.1", 9998)
+                    "Name1" to UserAddress(Protocol.HTTP, "127.0.0.1", 9998)
             ), objectMapper.readValue(response.content ?: ""))
         }
     }

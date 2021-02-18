@@ -1,9 +1,9 @@
 package ru.senin.kotlin.net
 
-enum class Protocol {
-    HTTP,
-    UDP,
-    WEBSOCKET
+enum class Protocol(val stringValue: String) {
+    HTTP("HTTP"),
+    UDP("UDP"),
+    WEBSOCKET("WEBSOCKET")
 }
 
 fun Protocol.getPrefix() : String {

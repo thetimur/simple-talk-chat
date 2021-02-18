@@ -1,10 +1,16 @@
 group = "ru.senin.kotlin.net.registry"
+val exposedVersion: String by project
 application.mainClassName = "ru.senin.kotlin.net.registry.ApplicationKt"
+
+repositories {
+    maven(url = "https://jitpack.io")
+}
 
 dependencies {
     val ktor_version: String by project
     val logback_version: String by project
 
+    implementation(group = "com.github.uchuhimo.konf", name = "konf", version = "master-SNAPSHOT")
     implementation(project(":shared"))
     implementation("com.google.code.gson:gson:2.8.6")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
@@ -20,5 +26,9 @@ dependencies {
     implementation("io.ktor:ktor-client-websockets:$ktor_version")
     implementation("io.ktor:ktor-client-logging:$ktor_version")
     implementation(group = "io.github.rybalkinsd", name = "kohttp", version = "0.12.0")
+    implementation("com.h2database:h2:1.4.199")
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
 }

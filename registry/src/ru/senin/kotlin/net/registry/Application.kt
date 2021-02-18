@@ -1,6 +1,9 @@
 package ru.senin.kotlin.net.registry
 
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.uchuhimo.konf.Config
+import com.uchuhimo.konf.ConfigSpec
+import com.uchuhimo.konf.source.yaml
 import io.github.rybalkinsd.kohttp.ext.httpGet
 import io.ktor.application.*
 import io.ktor.features.*
@@ -11,69 +14,82 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.netty.*
 import okhttp3.Request
-import org.slf4j.LoggerFactory
+import org.jetbrains.exposed.sql.*
 import org.slf4j.event.Level
 import ru.senin.kotlin.net.Protocol
-import ru.senin.kotlin.net.UserAddress
 import ru.senin.kotlin.net.UserInfo
 import ru.senin.kotlin.net.checkUserName
+import ru.senin.kotlin.net.registry.storage.DBUserStorage
+import ru.senin.kotlin.net.registry.storage.MemoryUserStorage
+import ru.senin.kotlin.net.registry.storage.UserStorage
 import java.lang.Thread.sleep
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.HashMap
-import kotlin.collections.hashMapOf
-import kotlin.collections.iterator
-import kotlin.collections.mapOf
-import kotlin.collections.mutableListOf
+import java.nio.file.Paths
 import kotlin.collections.set
 import kotlin.concurrent.thread
 
+object Registry {
+    lateinit var users : UserStorage
+}
+
+object ServerSpec : ConfigSpec("config") {
+    val dbType by required<String>()
+    val dbUrl by required<String>()
+    val dbDriver by required<String>()
+}
 
 fun main(args: Array<String>) {
+
+    // Get current path and find our config file
+    val path = Paths.get("").toAbsolutePath().toString()
+    val config = Config { addSpec(ServerSpec) }.from.yaml.file("$path/registry/resources/config.yml")
+    if (config[ServerSpec.dbType] == "database") {
+        Registry.users = DBUserStorage(config[ServerSpec.dbUrl], config[ServerSpec.dbDriver])
+    } else {
+        Registry.users = MemoryUserStorage()
+    }
+
+    Registry.users.init()
     thread {
         val badRequestCounter: HashMap<UserInfo, Int> = hashMapOf()
         while (true) {
-            val removeList = mutableListOf<String>()
-            for (user in Registry.users) {
+            val removeList = mutableListOf<UserInfo>()
+            for (user in Registry.users.getUserList()) {
                 var response : Boolean? = null
-                if (user.value.protocol == Protocol.HTTP) {
+                if (user.address.protocol == Protocol.HTTP) {
                     response = try {
-                        "http://${user.value.host}:${user.value.port}/v1/health".httpGet().isSuccessful
+                        "http://${user.address.host}:${user.address.port}/v1/health".httpGet().isSuccessful
                     } catch (e : Throwable) {
                         null
                     }
-                }  else if (user.value.protocol == Protocol.WEBSOCKET) {
+                }  else if (user.address.protocol == Protocol.WEBSOCKET) {
                     response = try {
                         Request.Builder()
-                            .url("ws://$${user.value.host}:${user.value.port}")
+                            .url("ws://$${user.address.host}:${user.address.port}")
                             .build()
                         true
                     } catch (e : Throwable) {
                         null
                     }
                 }
-                val now = badRequestCounter[UserInfo(user.key, user.value)] ?: 0
+                val now = badRequestCounter[user] ?: 0
                 if (response == null || response == false) {
-                    badRequestCounter[UserInfo(user.key, user.value)] = now + 1
+                    badRequestCounter[user] = now + 1
                     if (now > 3) {
-                        removeList.add(user.key)
-                        badRequestCounter.remove(UserInfo(user.key, user.value))
+                        removeList.add(user)
+                        badRequestCounter.remove(user)
                     }
                 } else {
-                    badRequestCounter[UserInfo(user.key, user.value)] = 0
+                    badRequestCounter[user] = 0
                 }
                 println(badRequestCounter)
             }
             for (user in removeList) {
-                Registry.users.remove(user)
+                Registry.users.removeUser(user.name)
             }
             sleep(60 * 1000)
         }
     }
     EngineMain.main(args)
-}
-
-object Registry {
-    val users = ConcurrentHashMap<String, UserAddress>()
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -109,25 +125,25 @@ fun Application.module(testing: Boolean = false) {
             val user = call.receive<UserInfo>()
             val name = user.name
             checkUserName(name) ?: throw IllegalUserNameException()
-            if (Registry.users.contains(name)) {
+            if (Registry.users.containsUser(name)) {
                 throw UserAlreadyRegisteredException()
             }
-            Registry.users[name] = user.address
+            Registry.users.updateUser(user)
             call.respond(mapOf("status" to "ok"))
         }
 
         get("/v1/users") {
-            call.respond(Registry.users)
+            call.respond(Registry.users.getUserList().map { it.name to it.address }.toMap())
         }
 
         put("/v1/users/{user}") {
             val user = call.receive<UserInfo>()
 
-            if (!Registry.users.containsKey(user.name)) {
+            if (!Registry.users.containsUser(user.name)) {
                 throw UserNotRegisteredException()
             }
             checkUserName(user.name) ?: throw IllegalUserNameException()
-            Registry.users[user.name] = user.address
+            Registry.users.updateUser(user)
             call.respond(mapOf("status" to "ok"))
         }
 
@@ -135,7 +151,7 @@ fun Application.module(testing: Boolean = false) {
             val name = call.parameters["user"] ?: throw UserNotRegisteredException()
 
             checkUserName(name) ?: throw IllegalUserNameException()
-            Registry.users.remove(name)
+            Registry.users.removeUser(name)
             call.respond(mapOf("status" to "ok"))
         }
     }
@@ -144,3 +160,4 @@ fun Application.module(testing: Boolean = false) {
 class UserAlreadyRegisteredException: RuntimeException("User already registered")
 class UserNotRegisteredException: RuntimeException("User not registered")
 class IllegalUserNameException: RuntimeException("Illegal user name")
+class UserWithoutAddressException: RuntimeException("User address not set in database")
